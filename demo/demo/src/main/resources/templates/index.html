@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Dashboard</title>
+    <style>
+        /* Modern Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f4f6f8; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            color: #1e293b;
+        }
+
+        /* Layout Container */
+        .dashboard {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        /* Clean Search Bar */
+        .search-form {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+        
+        input[type="text"] { 
+            padding: 12px 20px; 
+            width: 320px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            outline: none; 
+            font-size: 0.95rem;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        
+        button { 
+            padding: 12px 24px; 
+            border: none; 
+            background-color: #0f172a; 
+            color: #ffffff; 
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: background-color 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: #1e293b;
+        }
+
+        /* System Messages */
+        .error-banner { 
+            color: #991b1b; 
+            font-size: 0.95rem;
+            background-color: #fef2f2;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #fee2e2;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        /* Main Highlight Section */
+        .current-weather { 
+            background-color: #f8fafc; 
+            padding: 30px; 
+            border-radius: 12px; 
+            text-align: center;
+            margin-bottom: 35px;
+            border: 1px solid #edf2f7;
+        }
+        
+        .city-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        
+        .temperature { 
+            font-size: 3.5rem; 
+            font-weight: 700; 
+            color: #0f172a;
+            margin: 10px 0;
+            letter-spacing: -0.04em;
+        }
+        
+        .meta-info {
+            font-size: 0.95rem;
+            color: #64748b;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .condition {
+            text-transform: capitalize;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        /* Section Subheading */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        /* 5-Day Forecast Row Layout */
+        .forecast-row { 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 12px; 
+        }
+        
+        .forecast-card { 
+            background: #ffffff; 
+            padding: 16px 12px; 
+            border-radius: 10px; 
+            flex: 1;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: border-color 0.2s ease;
+        }
+        
+        .forecast-card:hover {
+            border-color: #cbd5e1;
+        }
+        
+        .date { 
+            font-size: 0.85rem; 
+            color: #64748b; 
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .grid-temp { 
+            font-size: 1.3rem; 
+            font-weight: 600; 
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        
+        .humidity {
+            font-size: 0.85rem; 
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .weather-desc {
+            font-size: 0.8rem;
+            text-transform: capitalize;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <header>
+            <h2>🌤️ Weather Dashboard</h2>
+        </header>
+        
+        <!-- Action Control -->
+        <div class="search-form">
+            <form action="/weather" method="get" style="display: flex; gap: 12px;">
+                <input type="text" name="city" placeholder="Search city..." required>
+                <button type="submit">View Forecast</button>
+            </form>
+        </div>
+
+        <!-- System Alerts -->
+        <div th:if="${error}" class="error-banner" th:text="${error}"></div>
+
+        <!-- Render Block -->
+        <div th:if="${cityName}">
+            
+            <!-- Focus Panel -->
+            <div class="current-weather">
+                <div class="city-name" th:text="${cityName}">City Name</div>
+                <div class="temperature"><span th:text="${forecastList[0].main.temp}">0</span>°C</div>
+                <div class="meta-info">
+                    <span>💧 Humidity: <strong th:text="${forecastList[0].main.humidity}">0</strong>%</span>
+                    <span>•</span>
+                    <span class="condition" th:text="${forecastList[0].weather[0].description}">Condition</span>
+                </div>
+            </div>
+
+            <div class="section-title">5-Day Outlook</div>
+            
+            <!-- Matrix Stream -->
+            <div class="forecast-row">
+                <div class="forecast-card" th:each="day : ${forecastList}">
+                    <div class="date" th:text="${#strings.substring(day.dtTxt, 5, 10)}">Date</div>
+                    <div class="grid-temp"><span th:text="${day.main.temp}">0</span>°C</div>
+                    <div class="humidity">💧 <span th:text="${day.main.humidity}">0</span>%</div>
+                    <div class="weather-desc" th:text="${day.weather[0].description}">Cloudy</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
